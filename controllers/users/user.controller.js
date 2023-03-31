@@ -121,8 +121,42 @@ const followingCtrl = async (req, res, next) => {
     next(appErr(error.message, 500));
   }
 };
+const unFollowCtrl = async (req, res, next) => {
+  try {
+    // Find the user to unFollow
+    const userToBeUnFollowed = await User.findById(req.params.id);
+    // Find the user who is unFollowing
+    const userWhoUnFollowed = await User.findById(req.userAuth);
+    // Check if user and userWhoUnFollowed are found
+    if (userToBeUnFollowed && userWhoUnFollowed) {
+      // Check if userWhoUnFollowed is already in the user's followers array
+      const isUserAlreadyFollowed = userToBeUnFollowed.followers.find(
+        (follower) => follower.toString() === userWhoUnFollowed._id.toJSON()
+      );
+      if (!isUserAlreadyFollowed)
+        return next(appErr("You have not followed this user"));
+      // Remove userWhoUnFollowed from the user's followers array
+      userToBeUnFollowed.followers = userToBeUnFollowed.followers.filter(
+        (follower) => follower.toString() !== userWhoUnFollowed._id.toJSON()
+      );
+      await userToBeUnFollowed.save();
+
+      userWhoUnFollowed.following ===
+        userWhoUnFollowed.following.filter(
+          (following) =>
+            following.toString() !== userToBeUnFollowed._id.toJSON()
+        );
+      await userWhoUnFollowed.save();
+      res.json({
+        status: "success",
+        data: "You have successfully unFollowed this user",
+      });
+    }
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const usersCtrl = async (req, res) => {};
-const unFollowCtrl = async (req, res) => {};
 const userProfileCtrl = async (req, res) => {};
 const blockUsersCtrl = async (req, res) => {};
 const unblockUserCtrl = async (req, res) => {};
