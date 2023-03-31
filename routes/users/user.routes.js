@@ -14,11 +14,15 @@ const {
   adminUnblockUserCtrl,
   updatePasswordCtrl,
   deleteUserAccountCtrl,
-  // profilePhotoUploadCtrl,
+  profilePhotoUploadCtrl,
 } = require("../../controllers/users/user.controller");
 const isLogin = require("../../middlewares/isLogin");
 
+const multer = require("multer");
+const storage = require("../../config/cloudinary");
+
 const userRouter = express.Router();
+const upload = multer({ storage: storage });
 
 //POST/api/v1/users/register
 userRouter.post("/register", userRegisterCtrl);
@@ -42,7 +46,7 @@ userRouter.get("/profile-viewers/:id", isLogin, whoViewedMyProfileCtrl);
 userRouter.get("/following/:id", isLogin, followingCtrl);
 
 //GET/api/v1/users/unfollow/:id
-userRouter.get("/unfollowing/:id", isLogin, unFollowCtrl);
+userRouter.get("/unFollowing/:id", isLogin, unFollowCtrl);
 
 //GET/api/v1/users/block/:id
 userRouter.get("/block/:id", isLogin, blockUsersCtrl);
@@ -62,11 +66,11 @@ userRouter.put("/update-password", isLogin, updatePasswordCtrl);
 //DELETE/api/v1/users/unblock/:id
 userRouter.delete("/delete-account", isLogin, deleteUserAccountCtrl);
 
-//POST/api/v1/users/:id
-// userRouter.post(
-//   "/profile-photo-upload",
-//   isLogin,
-//   upload.single("profile"),
-//   profilePhotoUploadCtrl
-// );
+// POST/api/v1/users/:id
+userRouter.post(
+  "/profile-photo-upload",
+  isLogin,
+  upload.single("profile"),
+  profilePhotoUploadCtrl
+);
 module.exports = userRouter;

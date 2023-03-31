@@ -75,7 +75,39 @@ const adminUnblockUserCtrl = async (req, res) => {};
 const updateUserCtrl = async (req, res) => {};
 const updatePasswordCtrl = async (req, res) => {};
 const deleteUserAccountCtrl = async (req, res) => {};
-const profilePhotoUploadCtrl = async (req, res) => {};
+const profilePhotoUploadCtrl = async (req, res, next) => {
+  console.log(req.file);
+  try {
+    // Find the user to be updated
+    const userToUpdated = await User.findById(req.userAuth);
+    // Check if user found
+    if (!userToUpdated) return next(appErr("User not found", 403));
+    // Check if user is blocked
+    if (userToUpdated.isBlocked)
+      return next(appErr("Action not allowed, your account is blocked", 403));
+    // Check if a user is updating their photo
+    if (req.file) {
+      // Update profile
+      await User.findByIdAndUpdate(
+        req.userAuth,
+        {
+          $set: {
+            profilePhoto: req.file.path,
+          },
+        },
+        {
+          new: true,
+        }
+      );
+      res.json({
+        status: "success",
+        data: "You have successfully updated your profile photo",
+      });
+    }
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
 module.exports = {
   userRegisterCtrl,
   userLoginCtrl,
