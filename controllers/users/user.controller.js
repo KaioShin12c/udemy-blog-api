@@ -63,8 +63,64 @@ const userLoginCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const whoViewedMyProfileCtrl = async (req, res) => {};
-const followingCtrl = async (req, res) => {};
+const whoViewedMyProfileCtrl = async (req, res, next) => {
+  try {
+    // Find the original
+    const user = await User.findById(req.params.id);
+    // Find the user who viewed the original user
+    const userWhoViewed = await User.findById(req.userAuth);
+    // Check if original and who viewed are found
+    if (user && userWhoViewed) {
+      const isUserAlreadyViewed = user.viewers.find(
+        (viewed) => viewed.toString() === userWhoViewed._id.toJSON()
+      );
+      if (isUserAlreadyViewed) {
+        return next(appErr("You already viewed this profile"));
+      }
+    } else {
+      // Push the userWhoViewed to the user's viewers array
+      user.viewers.push(userWhoViewed._id);
+      // Save the user
+      await user.save();
+      res.json({
+        status: "success",
+        data: "You have successfully viewed this profile",
+      });
+    }
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
+const followingCtrl = async (req, res, next) => {
+  try {
+    // Find the user to follow
+    const userToFollow = await User.findById(req.params.id);
+    // Find the user who is following
+    const userWhoFollowed = await User.findById(req.userAuth);
+    // Check if user and userWhoFollowed are found
+    if (userToFollow && userWhoFollowed) {
+      // Check if userWhoFollowed is already in the user's followed array
+      const isUserAlreadyFollowed = userToFollow.following.find(
+        (follower) => follower.toString() === userWhoFollowed._id.toJSON()
+      );
+      if (isUserAlreadyFollowed)
+        return next(appErr("You ready followed this user"));
+      // Push userWhoFollowed to the user's followed array
+      userToFollow.followers.push(userWhoFollowed._id);
+      // Push userToFollow to the userWhoFollowed's following array
+      userWhoFollowed.following.push(userToFollow._id);
+      // save
+      await userWhoFollowed.save();
+      await userToFollow.save();
+      res.json({
+        status: "success",
+        data: "You have successfully this user",
+      });
+    }
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
 const usersCtrl = async (req, res) => {};
 const unFollowCtrl = async (req, res) => {};
 const userProfileCtrl = async (req, res) => {};
@@ -76,7 +132,6 @@ const updateUserCtrl = async (req, res) => {};
 const updatePasswordCtrl = async (req, res) => {};
 const deleteUserAccountCtrl = async (req, res) => {};
 const profilePhotoUploadCtrl = async (req, res, next) => {
-  console.log(req.file);
   try {
     // Find the user to be updated
     const userToUpdated = await User.findById(req.userAuth);
