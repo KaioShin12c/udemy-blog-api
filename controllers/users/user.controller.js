@@ -158,7 +158,32 @@ const unFollowCtrl = async (req, res, next) => {
 };
 const usersCtrl = async (req, res) => {};
 const userProfileCtrl = async (req, res) => {};
-const blockUsersCtrl = async (req, res) => {};
+const blockUsersCtrl = async (req, res, next) => {
+  try {
+    // Find the user to be blocked
+    const userToBeBlocked = await User.findById(req.params.id);
+    // Find the user who is blocking
+    const userWhoBlocked = await User.findById(req.userAuth);
+    // Check if userToBeBlocked and userWhoBlocked are found
+    if (userToBeBlocked && userWhoBlocked) {
+      // Check if userWhoBlocked is already in the user's blocked array
+      const isUserAlreadyBlocked = userWhoBlocked.blocked.find(
+        (blocked) => blocked.toString() === userToBeBlocked._id.toString()
+      );
+      if (isUserAlreadyBlocked)
+        return next(appErr("You already blocked this user"));
+      // Push userToBeBlocked to the userWhoBlocked's blocked array
+      userWhoBlocked.blocked.push(userToBeBlocked._id);
+      await userWhoBlocked.save();
+      res.json({
+        status: "success",
+        data: "You have successfully blocked this user",
+      });
+    }
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const unblockUserCtrl = async (req, res) => {};
 const adminBlockUserCtrl = async (req, res) => {};
 const adminUnblockUserCtrl = async (req, res) => {};
