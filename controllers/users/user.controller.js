@@ -184,8 +184,39 @@ const blockUsersCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const unblockUserCtrl = async (req, res) => {};
-const adminBlockUserCtrl = async (req, res) => {};
+const unblockUserCtrl = async (req, res, next) => {
+  try {
+    const userToBeUnblocked = await User.findById(req.params.id);
+    const user = await User.findById(req.req.userAuth);
+    if (user && userToBeUnblocked) {
+      const isUserAlreadyUnBlocked = user.blocked.find(
+        (blocked) => blocked.toString() === userToBeUnblocked._id.toString()
+      );
+      if (!isUserAlreadyUnBlocked)
+        return next(appErr("User already unblocked"));
+      user.blocked.filter(
+        (blocked) => blocked.toString() !== userToBeUnblocked._id.toString()
+      );
+      await user.save();
+    }
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
+const adminBlockUserCtrl = async (req, res, next) => {
+  try {
+    const userToBeBlocked = await User.findById(req.params.id);
+    if (!userToBeBlocked) return next(appErr("User not found"));
+    userToBeBlocked.blocked = true;
+    userToBeBlocked.save();
+    res.json({
+      status: "success",
+      data: "admin block user",
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const adminUnblockUserCtrl = async (req, res) => {};
 const updateUserCtrl = async (req, res) => {};
 const updatePasswordCtrl = async (req, res) => {};

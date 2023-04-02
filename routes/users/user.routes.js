@@ -57,7 +57,7 @@ userRouter.get("/unblock/:id", isLogin, unblockUserCtrl);
 //PUT/api/v1/users/unblock/:id
 userRouter.put("/admin-block/:id", isLogin, adminBlockUserCtrl);
 
-//PUT/api/v1/users/unblock/:id
+//PUT/api/v1/users/admin-block/:id
 userRouter.put("/admin-unblock/:id", isLogin, adminUnblockUserCtrl);
 
 //PUT/api/v1/users/unblock/:id
