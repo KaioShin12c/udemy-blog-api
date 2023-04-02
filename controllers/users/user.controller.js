@@ -217,7 +217,20 @@ const adminBlockUserCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const adminUnblockUserCtrl = async (req, res) => {};
+const adminUnblockUserCtrl = async (req, res, next) => {
+  try {
+    const userToBeBlocked = await User.findById(req.params.id);
+    if (!userToBeBlocked) return next(appErr("User not found"));
+    userToBeBlocked.blocked = false;
+    userToBeBlocked.save();
+    res.json({
+      status: "success",
+      data: "Admin unblock user",
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const updateUserCtrl = async (req, res) => {};
 const updatePasswordCtrl = async (req, res) => {};
 const deleteUserAccountCtrl = async (req, res) => {};
