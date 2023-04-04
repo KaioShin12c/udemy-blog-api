@@ -37,9 +37,6 @@ userRouter.get("/", usersCtrl);
 //GET/api/v1/users/profile/:id
 userRouter.get("/profile/", isLogin, userProfileCtrl);
 
-//PUT/api/v1/users/:id
-userRouter.put("/", isLogin, updateUserCtrl);
-
 //GET/api/v1/users/profile-viewers/:id
 userRouter.get("/profile-viewers/:id", isLogin, whoViewedMyProfileCtrl);
 
@@ -60,6 +57,9 @@ userRouter.put("/admin-block/:id", isLogin, isAdmin, adminBlockUserCtrl);
 
 //PUT/api/v1/users/admin-block/:id
 userRouter.put("/admin-unblock/:id", isLogin, isAdmin, adminUnblockUserCtrl);
+
+//PUT/api/v1/users/:id
+userRouter.put("/", isLogin, updateUserCtrl);
 
 //PUT/api/v1/users/unblock/:id
 userRouter.put("/update-password", isLogin, updatePasswordCtrl);

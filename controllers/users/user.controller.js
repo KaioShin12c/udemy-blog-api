@@ -2,6 +2,9 @@ const User = require("../../models/User/User");
 const bcrypt = require("bcryptjs");
 const { AppErr, appErr } = require("../../utils/appErr");
 const generateToken = require("../../utils/generateToken");
+const Post = require("../../models/Post/Post");
+const Comment = require("../../models/Comment/Comment");
+const Category = require("../../models/Category/Category");
 
 const userRegisterCtrl = async (req, res, next) => {
   const { firstname, lastname, email, password } = req.body;
@@ -156,8 +159,28 @@ const unFollowCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const usersCtrl = async (req, res) => {};
-const userProfileCtrl = async (req, res) => {};
+const usersCtrl = async (req, res, next) => {
+  try {
+    const users = await User.find();
+    res.json({
+      status: "success",
+      data: users,
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
+const userProfileCtrl = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userAuth).populate("posts");
+    res.json({
+      status: "success",
+      data: user,
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const blockUsersCtrl = async (req, res, next) => {
   try {
     // Find the user to be blocked
@@ -231,9 +254,70 @@ const adminUnblockUserCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const updateUserCtrl = async (req, res) => {};
-const updatePasswordCtrl = async (req, res) => {};
-const deleteUserAccountCtrl = async (req, res) => {};
+const updateUserCtrl = async (req, res, next) => {
+  const { email, lastname, firstname } = req.body;
+  try {
+    // Check if email is not taken
+    if (email) {
+      const emailTaken = await User.findOne({ email });
+      if (emailTaken) return next(appErr("Email is taken", 400));
+    }
+    // update the user
+    const user = await User.findByIdAndUpdate(
+      req.userAuth,
+      { firstname, lastname, email },
+      { new: true, runValidators: true }
+    );
+    res.json({
+      status: "success",
+      data: user,
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
+const updatePasswordCtrl = async (req, res, next) => {
+  const { password } = req.body;
+  try {
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      // update user
+      await User.findByIdAndUpdate(
+        req.userAuth,
+        { password: hashedPassword },
+        { new: true, runValidators: true }
+      );
+      res.json({
+        status: "success",
+        data: "Password has been changed successfully",
+      });
+    } else {
+      next(appErr("Please provide password field"));
+    }
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
+const deleteUserAccountCtrl = async (req, res, next) => {
+  try {
+    // Find the user to be deleted
+    // const userToBeDelete = await User.findById(req.userAuth);
+    // Find all posts to be deleted
+    await Post.deleteMany({ user: req.userAuth });
+    // Delete all comments of the user
+    await Comment.deleteMany({ user: req.userAuth });
+    // Delete all category of the user
+    await Category.deleteMany({ user: req.userAuth });
+    await User.deleteOne({ _id: req.userAuth });
+    res.json({
+      status: "success",
+      data: "Delete user account success",
+    });
+  } catch (error) {
+    next(appErr(error.message));
+  }
+};
 const profilePhotoUploadCtrl = async (req, res, next) => {
   try {
     // Find the user to be updated
