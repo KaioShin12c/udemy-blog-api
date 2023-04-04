@@ -24,9 +24,34 @@ const fetchCategoriesCtrl = async (req, res, next) => {
     next(appErr(error.message));
   }
 };
-const categoryDetailsCtrl = async (req, res, next) => {};
+const categoryDetailsCtrl = async (req, res, next) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    res.json({
+      status: "success",
+      data: category,
+    });
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
 const deleteCategoryCtrl = async (req, res, next) => {};
-const updateCategoryCtrl = async (req, res, next) => {};
+const updateCategoryCtrl = async (req, res, next) => {
+  const { title } = req.body;
+  try {
+    const category = await Category.findByIdAndUpdate(
+      req.params.id,
+      { title },
+      { new: true, runValidators: true }
+    );
+    res.json({
+      status: "success",
+      data: category,
+    });
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
 
 module.exports = {
   createCategoryCtrl,
