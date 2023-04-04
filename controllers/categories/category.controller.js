@@ -35,7 +35,17 @@ const categoryDetailsCtrl = async (req, res, next) => {
     next(appErr(error.message, 500));
   }
 };
-const deleteCategoryCtrl = async (req, res, next) => {};
+const deleteCategoryCtrl = async (req, res, next) => {
+  try {
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({
+      status: "success",
+      data: "Delete category successfully",
+    });
+  } catch (error) {
+    next(appErr(error.message, 500));
+  }
+};
 const updateCategoryCtrl = async (req, res, next) => {
   const { title } = req.body;
   try {
